@@ -8,10 +8,11 @@ open import Cubical.Foundations.Transport
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Path
 open import Cubical.Foundations.GroupoidLaws
+open import Cubical.Foundations.Univalence
+open import Cubical.Foundations.Function
 open import Cubical.Data.Sigma
 open import Cubical.Data.Nat
 open import Cubical.Data.Fin
-open import Cubical.Foundations.Univalence
 open import Cubical.Core.Primitives
 
 -- exercice : trouver une preuve avec les indices
@@ -21,8 +22,8 @@ substCompᵣ {x = x} q p = J (λ y' q → subst (λ y → x ≡ y) q p ≡ p ∙
 substCompₗ : {ℓ : Level} {A : Type ℓ} {x x' y : A} (q : x ≡ x') (p : x ≡ y) → subst (λ x → x ≡ y) q p ≡ (sym q) ∙ p
 substCompₗ {y = y} q p = J ((λ x' q → subst (λ x → x ≡ y) q p ≡ (sym q) ∙ p)) (substRefl {B = (λ x → x ≡ y)} p ∙ lUnit p) q
 
---subst≡ᵣ : {ℓ : Level} {A : Type ℓ} {x y : A} (a : A) (p : x ≡ y) (q : a ≡ x) → subst (λ x → a ≡ x) p q ≡ q ∙ p
---subst≡ᵣ a p q = fromPathP (compPath-filler q p)
+-- subst≡ᵣ : {ℓ : Level} {A : Type ℓ} {x y : A} (a : A) (p : x ≡ y) (q : a ≡ x) → subst (λ x → a ≡ x) p q ≡ q ∙ p
+-- subst≡ᵣ a p q = fromPathP (compPath-filler q p)
 
 lem : (Σ[ A ∈ Type₀ ] (Σ[ n ∈ ℕ ] (A ≡ Fin n))) ≃ ℕ
 lem = isoToEquiv i
@@ -69,19 +70,52 @@ lem-3-11-9-i {A} {P} c = isoToEquiv i
 lem-4-8-2 : {A B : Type₀} → (f : A → B) → Σ B (fiber f) ≃ A
 lem-4-8-2 {A} {B} f = compEquiv Σ-comm (lem-3-11-9-i λ a → (f a , refl) , (λ { (b , p) → contrSingl p}))
 
-equivalence : {B : Type₀} → (Σ[ X ∈ Type₀ ]  (X → B)) ≃ (B → Type₀)
+lem-2-9-4 : {X : Type₀} (A B : X → Type₀) {x y : X} (p : x ≡ y) (f : A x → B x) →
+            subst (λ x → A x → B x) p f ≡ subst B p ∘ f ∘ subst A (sym p)
+lem-2-9-4 A B p f = refl
+
+equivalence : {B : Type₀} → (Σ[ X ∈ Type₀ ] (X → B)) ≃ (B → Type₀)
 equivalence {B} = isoToEquiv i
   where
   i : Iso (Σ[ X ∈ Type₀ ]  (X → B)) (B → Type₀)
   Iso.fun i (X , f) = fiber f 
-  Iso.inv i F = (Σ B (λ b → F b)) , fst
-  Iso.rightInv i F = funExt λ b → ua (isoToEquiv (i' b))
+  Iso.inv i F = Σ B (λ b → F b) , fst
+  Iso.rightInv i F = funExt (λ b → ua (isoToEquiv (i' b)))
     where
     i' : (b : B) → Iso (fiber fst b) (F b)
-    i' b = iso (λ { ((b' , a') , p) → subst F p a'})
-               (λ a → (b , a) , refl)
-               (λ a → substRefl {B = F} a)
-               (λ { ((b' , a') , p) → ΣPathP (ΣPathP (sym p , {!!}) , {!!}) })
-               
-  --Iso.leftInv i (A , f) = ΣPathP (ua (lem-4-8-2 f) , {!!})
-  Iso.leftInv i (A , f) = sigmaPath→pathSigma ((Σ B (fiber f) , fst)) (A , f) ((ua (lem-4-8-2 f)) , funExt λ x → {!!})
+    -- i' b = iso (λ { ((b' , a') , p) → subst F p a'})
+               -- (λ a → (b , a) , refl)
+               -- (λ a → substRefl {B = F} a)
+               -- (λ { ((b' , a') , p) → ΣPathP (ΣPathP (sym p , {!!}) , {!!}) })
+    Iso.fun (i' b) ((b' , a') , p) = subst F p a'
+    Iso.inv (i' b) a = (b , a) , refl
+    Iso.rightInv (i' b) a = substRefl {B = F} a
+    Iso.leftInv (i' b) ((b' , a') , p) = ΣPathP (ΣPathP (sym p , toPathP aux) , toPathP aux')
+      where
+      aux : transport (cong F (sym p)) (subst F p a') ≡ a'
+      aux =
+        transport (cong F (sym p)) (subst F p a') ≡⟨ refl ⟩
+        subst F (sym p) (subst F p a')            ≡⟨ sym (substComposite F p (sym p) a') ⟩
+        subst F (p ∙ sym p) a'                    ≡⟨ cong (λ p → subst F p a') (rCancel p) ⟩
+        subst F refl a'                           ≡⟨ substRefl {B = F} a' ⟩
+        a'                                        ∎
+      auxP : PathP (λ i → cong F (sym p) i) (subst F p a') a'
+      auxP = toPathP aux
+      aux' =
+        transport (λ i → fst (ΣPathP {B = F} (sym p , auxP) i) ≡ b) refl ≡⟨ refl ⟩
+        transport (λ i → sym p i ≡ b) refl ≡⟨ substCompₗ (sym p) refl ⟩
+        p ∙ refl ≡⟨ sym (rUnit p) ⟩
+        p ∎
+
+  -- uaβ (lem-4-8-2 f) fst
+  Iso.leftInv i (A , f) = ΣPathP (ua (lem-4-8-2 f) , toPathP aux)
+    where
+    aux =
+      transport (λ i → ua (lem-4-8-2 f) i → B) fst ≡⟨ refl ⟩
+      subst (λ X → X → B) (ua (lem-4-8-2 f)) fst ≡⟨ {!!} ⟩ -- lem-2-9-4 ?
+      {!!} ≡⟨ {!!} ⟩
+      fst ∘ transport (sym (ua (lem-4-8-2 f))) ≡⟨ {!uaInvEquiv!} ⟩
+      fst ∘ transport (ua (invEquiv (lem-4-8-2 f))) ≡⟨ {!uaβ!} ⟩
+      fst ∘ equivFun (invEquiv (lem-4-8-2 f)) ≡⟨ refl ⟩
+      f ∎
+  -- Iso.leftInv i (A , f) = sigmaPath→pathSigma ((Σ B (fiber f) , fst)) (A , f) ((ua (lem-4-8-2 f)) , funExt λ x → {!ΣPathP!})
