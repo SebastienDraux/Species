@@ -1,6 +1,5 @@
 {-# OPTIONS --cubical #-}
 
-open import Cubical.Core.Glue
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Isomorphism
@@ -19,7 +18,9 @@ data 𝔹 : Type₁ where
   obj : ℕ → 𝔹
   hom : {m n : ℕ} → Fin m ≡ Fin n → obj m ≡ obj n
   hom-id : {n : ℕ} → hom (refl {x = Fin n}) ≡ refl
-  hom-comp : {m n o : ℕ} (p : Fin m ≡ Fin n) (q : Fin n ≡ Fin o) → hom (p ∙ q) ≡ hom p ∙ hom q 
+  hom-comp : {m n o : ℕ} (p : Fin m ≡ Fin n) (q : Fin n ≡ Fin o) → hom (p ∙ q) ≡ hom p ∙ hom q
+
+-- rec : {A : 
 
 lem : Σ ℕ (λ n → Fin n) ≃ 𝔹
 lem = isoToEquiv i
