@@ -1,6 +1,8 @@
 # Species
 
-Projet sur les espèces de structures.
+Projet sur les espèces de structures. On se base sur [Species in
+HoTT](https://github.com/jdoughertyii/hott-species/blob/master/species.pdf) de
+Dougherty.
 
 # Notes
 
@@ -12,3 +14,10 @@ Projet sur les espèces de structures.
   - préfaisceaux / fibrations discretes : http://nlab-pages.s3.us-east-2.amazonaws.com/nlab/show/discrete+fibration
   - faisceaux / fibrations : http://nlab-pages.s3.us-east-2.amazonaws.com/nlab/show/Grothendieck+fibration
   - etc.
+
+## 14-02-2022
+
+- Montrer A ⊎ ⊤ ≃ B ⊎ ⊤ → A ≃ B (utiliser un pattern matching avec singl).
+- Pour l'additivité de Fin n, plutôt raisonner par induction.
+- Regarder ce qu'il se passe si on remplace ℕ par 𝔹 dans la définition des
+  séries formelles.
