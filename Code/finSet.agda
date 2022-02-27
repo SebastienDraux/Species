@@ -20,9 +20,12 @@ open import Cubical.Data.Sum
 open import Cubical.Data.Prod
 open import Cubical.Data.Unit
 open import Cubical.Data.Empty renaming (rec to ⊥-rec)
-open import Cubical.Data.Nat.Order
+--open import Cubical.Data.Nat.Order
+open import Cubical.Data.Nat.Order.Recursive
+open import Cubical.Relation.Nullary
 
 open import lemma
+open import g-card
 
 module finSet where
 
@@ -195,3 +198,76 @@ _×ₙ_ : FinSet → FinSet → FinSet
 
 claim-2-6 : {A B : FinSet} → card (A ×ₙ B) ≡ card A · card B
 claim-2-6 = refl
+
+
+fiber-card : (n : ℕ) → (fiber card n) ≡ (Σ[ A ∈ Type₀ ] ∥ A ≡ Fin n ∥)
+fiber-card n = 
+  fiber card n ≡⟨ refl ⟩
+  (Σ[ (A , m , ∣p∣) ∈ FinSet ] (m ≡ n))                                      ≡⟨ sym (ua (Ex-2-10 Type₀ isFinSet λ {(A , m , ∣p∣) → m ≡ n})) ⟩
+  (Σ[ A ∈ Type₀ ] (Σ[ (m , ∣p∣) ∈ isFinSet A ] (m ≡ n)))                     ≡⟨ Σ-cong-snd (λ A → sym (ua (Ex-2-10 ℕ (λ m → ∥ A ≡ Fin m ∥) λ {(m , ∣p∣) → m ≡ n}))) ⟩
+  (Σ[ A ∈ Type₀ ] (Σ[ m ∈ ℕ ] (Σ[ ∣p∣ ∈ ∥ A ≡ Fin m ∥ ] (m ≡ n))))           ≡⟨ refl ⟩
+  (Σ[ A ∈ Type₀ ] (Σ[ m ∈ ℕ ] (∥ A ≡ Fin m ∥ ×Σ (m ≡ n))))                  ≡⟨  Σ-cong-snd (λ A → Σ-cong-snd (λ m → ua e)) ⟩
+  (Σ[ A ∈ Type₀ ] (Σ[ m ∈ ℕ ] (∥ A ≡ Fin n ∥ ×Σ (m ≡ n))))                  ≡⟨ refl ⟩
+  (Σ[ A ∈ Type₀ ] (Σ[ m ∈ ℕ ] (Σ[ ∣p∣ ∈ ∥ A ≡ Fin n ∥ ] (m ≡ n))))           ≡⟨ Σ-cong-snd (λ A → Σ-cong-snd (λ m → Σ-cong-snd λ ∣p∣ → ua (equivSym m n))) ⟩
+  (Σ[ A ∈ Type₀ ] (Σ[ m ∈ ℕ ] (Σ[ ∣p∣ ∈ ∥ A ≡ Fin n ∥ ] (n ≡ m))))           ≡⟨ Σ-cong-snd (λ A → ua Σ-comm) ⟩
+  (Σ[ A ∈ Type₀ ] (Σ[ ∣p∣ ∈ ∥ A ≡ Fin n ∥ ] (Σ[ m ∈ ℕ ] (n ≡ m))))           ≡⟨ Σ-cong-snd (λ A → ua (lem-3-11-9-i λ _ → isContrSingl n)) ⟩
+  (Σ[ A ∈ Type₀ ] (∥ A ≡ Fin n ∥))                                           ∎
+
+    where
+
+    aux : {A : Type₀} → {m n : ℕ} → m ≡ n → ∥ A ≡ Fin m ∥ → ∥ A ≡ Fin n ∥ ×Σ (m ≡ n)
+    aux {m = m} {n = n} p = trunc-rec (×Prop isPropPropTrunc (isSetℕ m n)) λ q → ∣ q ∙ cong Fin p ∣ , p
+    
+    aux' : {A : Type₀} → {m n : ℕ} → m ≡ n → ∥ A ≡ Fin n ∥ → ∥ A ≡ Fin m ∥ ×Σ (m ≡ n)
+    aux' {m = m} {n = n} p = trunc-rec (×Prop isPropPropTrunc (isSetℕ m n)) λ q → ∣ q ∙ cong Fin (sym p) ∣ , p
+
+    e : {A : Type₀} → {m n : ℕ} → ∥ A ≡ Fin m ∥ ×Σ (m ≡ n) ≃ ∥ A ≡ Fin n ∥ ×Σ (m ≡ n)
+    e {A = A} {m = m} {n = n} = ≃Prop (∥ A ≡ Fin m ∥ ×Σ (m ≡ n)) (∥ A ≡ Fin n ∥ ×Σ (m ≡ n)) (×Prop isPropPropTrunc (isSetℕ m n)) (×Prop isPropPropTrunc (isSetℕ m n)) (λ { (∣q∣ , p) → aux p ∣q∣} ) λ { (∣q∣ , p) → aux' p ∣q∣}
+
+g-card-Fin : (n : ℕ) → (g-card (Fin n)) ≡ n
+g-card-Fin zero = 
+  g-card (Fin 0) ≡⟨ g-card-equiv ∣ invEquiv ⊥≃Fin0 ∣ ⟩
+  g-card ⊥ ≡⟨ g-card-⊥ ⟩
+  0 ∎
+g-card-Fin (suc n) = 
+  g-card (Fin (suc n)) ≡⟨ g-card-equiv ∣ finSuc ∣ ⟩
+  g-card (Fin n ⊎ Unit) ≡⟨ g-card-⊎ ⟩
+  (g-card (Fin n)) + (g-card Unit) ≡⟨ cong (λ m → m + (g-card Unit)) (g-card-Fin n) ⟩
+  n + (g-card Unit) ≡⟨ cong (λ m → n + m) g-card-Unit ⟩
+  n + 1 ≡⟨ +-comm n 1 ⟩
+  suc n ∎
+
+g-card-isFinSet : (A : Type₀) → (p : isFinSet A) → (g-card A) ≡ (card (A , p))
+g-card-isFinSet A (n , ∣p∣) = 
+  g-card A ≡⟨ g-card-equiv (∥pathToEquiv∥ ∣p∣) ⟩
+  g-card (Fin n) ≡⟨ g-card-Fin n ⟩
+  n ∎
+  
+≡Dec-ℕ : (m n : ℕ) → (Dec (m ≡ n))
+≡Dec-ℕ zero zero = yes refl
+≡Dec-ℕ zero (suc n) = no znots
+≡Dec-ℕ (suc m) zero = no snotz
+≡Dec-ℕ (suc m) (suc n) with (≡Dec-ℕ m n)
+... | yes p = yes (cong suc p)
+... | no ¬p = no (λ q → ¬p (injSuc q))
+
+≡Dec-Fin : {n : ℕ} → (x y : Fin n) → (Dec (x ≡ y))
+≡Dec-Fin {n = n} (a ,  b , p) (a' , b' , q) with (≡Dec-ℕ a a') | (≡Dec-ℕ b b')
+... | yes p' | yes q' = yes (ΣPathP (p' , ΣPathP (q' , toPathP aux)))
+  where
+  aux =
+    transport (λ i → q' i + suc (p' i) ≡ n) p ≡⟨ refl ⟩
+    subst2 (λ a b → a + suc b ≡ n) q' p' p ≡⟨ isSetℕ (b' + suc a') n (subst2 (λ a b → a + suc b ≡ n) q' p' p) q ⟩
+    q ∎
+
+... | _ | no ¬q' = no (λ P → ¬q' (λ i → fst (snd (P i))))
+... | no ¬p' | _ = no (λ P → ¬p' (λ i → fst (P i)))
+
+
+g-card-Aut-Fin : (n : ℕ) → (g-card (Aut (Fin n))) ≡ n !
+g-card-Aut-Fin zero = 
+  g-card (Aut (Fin 0)) ≡⟨ g-card-equiv ∣ pathToEquiv (cong Aut (ua (invEquiv ⊥≃Fin0))) ∣ ⟩
+  g-card (Aut ⊥) ≡⟨ g-card-Aut-⊥ ⟩
+  1 ∎
+
+g-card-Aut-Fin (suc n) = {!!}

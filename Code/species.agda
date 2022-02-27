@@ -34,7 +34,7 @@ Species : Type (ℓ-suc ℓ)
 Species {ℓ = ℓ} = Σ[ X ∈ Type ℓ ] (X → FinSet)
 
 Species' :  Type (ℓ-suc ℓ)
-Species' {ℓ = ℓ} = FinSet → Type ℓ
+Species'{ℓ = ℓ} = FinSet → Type ℓ
 
 species≃species' : Species ≃ Species'
 species≃species' = equivClassification
@@ -51,42 +51,46 @@ species≃species' = equivClassification
 --  aux : ℕ → ℕ → Type₀
 --  aux zero l = (f 0) × (g l)
 --  aux (suc k) l = (aux k (suc l)) ⊎ ((f (suc k)) × (g l))
-
+--
 --powerSeriesSpecies : Species → powerSeries
 --powerSeriesSpecies (X , f) n = fiber (card ∘ f) n
 
---_+ₛ_ : Species → Species → Species
+--_+ₛ_ : Species {ℓ = ℓ} → Species {ℓ = ℓ} → Species
 --(X , f) +ₛ (Y , g) = (X ⊎ Y) , (λ { (inl x) → f x ; (inr y) → g y})
 
 --+-PSS : {f g : Species} → (powerSeriesSpecies f) +ₚ (powerSeriesSpecies g) ≡ powerSeriesSpecies (f +ₛ g)
 --+-PSS {X , f} {Y , g} = funExt λ n → aux n
---  where
---  aux : (n : ℕ) → (powerSeriesSpecies (X , f) +ₚ powerSeriesSpecies (Y , g)) n ≡ powerSeriesSpecies ((X , f) +ₛ (Y , g)) n
---  aux n = ua (isoToEquiv i)
---
---    where
---    i : Iso ((powerSeriesSpecies (X , f) +ₚ powerSeriesSpecies (Y , g)) n) (powerSeriesSpecies ((X , f) +ₛ (Y , g)) n)
---    Iso.fun i (inl (x , p)) = inl x , p
---    Iso.fun i (inr (y , p)) = inr y , p
---    Iso.inv i (inl x , p) = inl (x , p)
---    Iso.inv i (inr y , p) = inr (y , p)
---    Iso.rightInv i (inl x , p) = refl
---    Iso.rightInv i (inr y , p) = refl
---    Iso.leftInv i (inl (x , p)) = refl
---   Iso.leftInv i (inr (y , p)) = refl
+ -- where
+ -- aux : (n : ℕ) → (powerSeriesSpecies (X , f) +ₚ powerSeriesSpecies (Y , g)) n ≡ powerSeriesSpecies ((X , f) +ₛ (Y , g)) n
+ -- aux n = ua (isoToEquiv i)
 
---_∙ₛ_ : Species → Species → Species
+  --  where
+  --  i : Iso ((powerSeriesSpecies (X , f) +ₚ powerSeriesSpecies (Y , g)) n) (powerSeriesSpecies ((X , f) +ₛ (Y , g)) n)
+  --  Iso.fun i (inl (x , p)) = inl x , p
+  --  Iso.fun i (inr (y , p)) = inr y , p
+  --  Iso.inv i (inl x , p) = inl (x , p)
+  --  Iso.inv i (inr y , p) = inr (y , p)
+  --  Iso.rightInv i (inl x , p) = refl
+  --  Iso.rightInv i (inr y , p) = refl
+  --  Iso.leftInv i (inl (x , p)) = refl
+  --  Iso.leftInv i (inr (y , p)) = refl
+
+--_∙ₛ_ :  Species {ℓ = ℓ} → Species {ℓ = ℓ} → Species
 --(X , f) ∙ₛ (Y , g) = X × Y , λ { (x , y) → (fst (f x) ⊎ fst (g y)) , (fst (snd (f x)) + fst (snd (g y)) , ∣ ua (isoToEquiv (i x y)) ∣)}
 --  where
  -- i : (x : X) → (y : Y) → Iso (fst (f x) ⊎ fst (g y)) (Fin (fst (snd (f x)) + fst (snd (g y))))
  -- i x y = j
---
+
  --   where
  --   j : Iso (fst (f x) ⊎ fst (g y)) (Fin (fst (snd (f x)) + fst (snd (g y))))
  --   Iso.fun j (inl x') = {!!} , {!!} , {!!}
- --   Iso.fun j (inr y') = {!!}
- --   Iso.inv j = {!!}
+  --  Iso.fun j (inr y') = {!!}
+  --  Iso.inv j = {!!}
  --   Iso.rightInv j = {!!}
  --   Iso.leftInv j = {!!}
 
+genSeries : Type (ℓ-suc ℓ)
+genSeries {ℓ = ℓ} = 𝔹 → Type ℓ
 
+genSeriesSpecies : Species → genSeries {ℓ = ℓ}
+genSeriesSpecies (X , f) b = fiber (card ∘ f) (𝔹toℕ b)
