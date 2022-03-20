@@ -20,8 +20,8 @@ open import Cubical.Data.Sum
 open import Cubical.Data.Prod
 open import Cubical.Data.Unit
 open import Cubical.Data.Empty renaming (rec to ⊥-rec)
---open import Cubical.Data.Nat.Order
-open import Cubical.Data.Nat.Order.Recursive
+open import Cubical.Data.Nat.Order
+--open import Cubical.Data.Nat.Order.Recursive
 open import Cubical.Relation.Nullary
 
 open import lemma
@@ -85,8 +85,8 @@ finSuc {n} = isoToEquiv i
   Iso.fun i (a , suc b , p) = inl (a , b , injSuc p)
   Iso.inv i (inl (a , b , p)) = a , (suc b) , (cong suc p)
   Iso.inv i (inr tt) = n , 0 , refl
-  Iso.leftInv i (a , zero , p) = Σ≡Prop (λ m → m≤n-isProp) (injSuc (sym p))
-  Iso.leftInv i (a , suc b , p) = Σ≡Prop (λ m → m≤n-isProp) refl
+  Iso.leftInv i (a , zero , p) = Σ≡Prop (λ _ → m≤n-isProp) (injSuc (sym p))
+  Iso.leftInv i (a , suc b , p) = Σ≡Prop (λ _ → m≤n-isProp) refl
   Iso.rightInv i (inl (a , b , p)) = cong inl (Σ≡Prop (λ m → m≤n-isProp) refl)
   Iso.rightInv i (inr tt) = refl
 
@@ -263,11 +263,40 @@ g-card-isFinSet A (n , ∣p∣) =
 ... | _ | no ¬q' = no (λ P → ¬q' (λ i → fst (snd (P i))))
 ... | no ¬p' | _ = no (λ P → ¬p' (λ i → fst (P i)))
 
+≡Fin : {n : ℕ} → (x x' : Fin n) → (fst x) ≡ (fst x') → x ≡ x'
+≡Fin {n = n} (m , k , p) (m' , k' , p') q = ΣPathP (q , ΣPathP (q' , toPathP (isSetℕ (k' + suc m') n (transport (λ i → q' i + suc (q i) ≡ n) p) p')))
+  where
+  q' : k ≡ k'
+  q' = (inj-+m (p ∙ sym (cong (λ m → k' + (suc m)) q ∙ p')))
 
-g-card-Aut-Fin : (n : ℕ) → (g-card (Aut (Fin n))) ≡ n !
-g-card-Aut-Fin zero = 
-  g-card (Aut (Fin 0)) ≡⟨ g-card-equiv ∣ pathToEquiv (cong Aut (ua (invEquiv ⊥≃Fin0))) ∣ ⟩
-  g-card (Aut ⊥) ≡⟨ g-card-Aut-⊥ ⟩
-  1 ∎
 
-g-card-Aut-Fin (suc n) = {!!}
+--AutFin : {n : ℕ} → (Aut (Fin (suc n))) ≃ (Aut (Fin n)) ×Σ (Fin (suc n))
+--AutFin {n = n} = isoToEquiv i
+--  where
+ -- i : Iso (Aut (Fin (suc n))) ((Aut (Fin n)) ×Σ (Fin (suc n)))
+ -- Iso.fun i e = isoToEquiv j , f (0 , (suc-≤-suc zero-≤))
+--    where
+ --   f = equivFun e
+ --   j : Iso (Fin n) (Fin n)
+ --   Iso.fun j (m , k , p) with fst (f (suc m , k , +-suc k (suc m) ∙ cong suc p)) ≟ fst (f (0 , (suc-≤-suc zero-≤)))
+ --   Iso.fun j (m , k , p) | lt ie = {!!}
+--    Iso.fun j (m , k , p) | eq q = ⊥-rec (snotz (cong fst (inj-≃ e (≡Fin ((f (suc m , k , +-suc k (suc m) ∙ cong suc p))) ((f (0 , (suc-≤-suc zero-≤)))) q))))
+--    Iso.fun j (m , k , p) | gt ie = {!!}
+--    Iso.inv j = {!!}
+--    Iso.leftInv j = {!!}
+--    Iso.rightInv j = {!!}
+
+
+--  Iso.inv i = {!!}
+--  Iso.leftInv i = {!!}
+--  Iso.rightInv i = {!!}
+--  
+
+
+--g-card-Aut-Fin : (n : ℕ) → (g-card (Aut (Fin n))) ≡ n !
+--g-card-Aut-Fin zero = 
+--  g-card (Aut (Fin 0)) ≡⟨ g-card-equiv ∣ pathToEquiv (cong Aut (ua (invEquiv ⊥≃Fin0))) ∣ ⟩
+--  g-card (Aut ⊥) ≡⟨ g-card-Aut-⊥ ⟩
+--  1 ∎
+
+--g-card-Aut-Fin (suc n) = {!!}

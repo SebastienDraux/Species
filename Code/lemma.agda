@@ -303,16 +303,16 @@ Ex-2-10 A P Q = isoToEquiv i
   Iso.leftInv i (a , b , c) = refl
   Iso.rightInv i ((a , b) , c) = refl
 
-Aut : (A : Type ℓ) → Type (ℓ-suc ℓ)
-Aut A = A ≡ A
+Aut : (A : Type ℓ) → Type ℓ
+Aut A = (A ≃ A)
 
 Aut-⊥ : (Aut ⊥) ≃ Unit
 Aut-⊥ = isoToEquiv i
   where
   i : Iso (Aut ⊥) Unit
   Iso.fun i p = tt
-  Iso.inv i tt = ua (idEquiv ⊥)
-  Iso.leftInv i p = (cong ua (equivEq (funExt (λ { ()})))) ∙ (ua-pathToEquiv p)
+  Iso.inv i tt = idEquiv ⊥
+  Iso.leftInv i e = equivEq (funExt (λ { ()}))
   Iso.rightInv i tt = refl
 
 Aut-Unit : (Aut Unit) ≃ Unit
@@ -320,8 +320,8 @@ Aut-Unit = isoToEquiv i
   where
   i : Iso (Aut Unit) Unit
   Iso.fun i p = tt
-  Iso.inv i tt = ua (idEquiv Unit)
-  Iso.leftInv i p = (cong ua (equivEq refl)) ∙ (ua-pathToEquiv p)
+  Iso.inv i tt = idEquiv Unit
+  Iso.leftInv i e = equivEq (funExt (λ { tt → refl}))
   Iso.rightInv i tt = refl
 
 ⊎-≡-Dec : ((b b' : B) → Dec (b ≡ b')) → ((b+1 b'+1 : B ⊎ Unit) → Dec (b+1 ≡ b'+1))
@@ -333,123 +333,127 @@ Aut-Unit = isoToEquiv i
 ⊎-≡-Dec eq? (inr tt) (inr tt) = yes refl
 
 --postulate
-≃-⊎-Unit :  {ℓ : Level} → {A B : Type ℓ} → ((b b' : B) → Dec (b ≡ b')) → ((A ⊎ Unit) ≃ (B ⊎ Unit)) ≃ (A ≃ B) ×Σ (B ⊎ Unit)
-≃-⊎-Unit {A = A} {B = B} eq? = isoToEquiv i
-  where
-
-  isoInvB : (A ≃ B) → B → Iso (A ⊎ Unit) (B ⊎ Unit)
-  isoInvB e b = j
-    where
+--≃-⊎-Unit :  {ℓ : Level} → {A B : Type ℓ} → ((b b' : B) → Dec (b ≡ b')) → ((A ⊎ Unit) ≃ (B ⊎ Unit)) ≃ (A ≃ B) ×Σ (B ⊎ Unit)
+--≃-⊎-Unit {A = A} {B = B} eq? = isoToEquiv i
+--  where
+--
+--  isoInvB : (A ≃ B) → B → Iso (A ⊎ Unit) (B ⊎ Unit)
+--  isoInvB e b = j
+--    where
     
-    f = equivFun e
-    g = equivFun (invEquiv e)
-    
-    j : Iso (A ⊎ Unit) (B ⊎ Unit)
-    Iso.fun j (inl a) with (eq? b (f a))
-    ... | yes p = inr tt
-    ... | no ¬p = inl (f a)
-    Iso.fun j (inr tt) = inl b
-    Iso.inv j (inl b') with (eq? b b')
-    ... | yes p = inr tt
-    ... | no ¬p = inl (g b')
-    Iso.inv j (inr tt) = inl (g b)
-    Iso.leftInv j (inl a) with (eq? b (f a))
-    Iso.leftInv j (inl a) | yes p  = cong inl (cong g p ∙ cong (λ e → equivFun e a) (invEquiv-is-rinv e))
-    Iso.leftInv j (inl a) | no ¬p with (eq? b (f a))
-    Iso.leftInv j (inl a) | no ¬p | yes q = ⊥-rec (¬p q)
-    Iso.leftInv j (inl a) | no ¬p | no ¬q = cong inl (cong (λ e → equivFun e a) (invEquiv-is-rinv e))
-    Iso.leftInv j (inr tt) with (eq? b b)
-    ... | yes p = refl
-    ... | no ¬p = ⊥-rec (¬p refl)
-    Iso.rightInv j (inl b') with (eq? b b')
-    Iso.rightInv j (inl b') | yes p = cong inl p
-    Iso.rightInv j (inl b') | no ¬p with (eq? b (equivFun e (g b')))
-    Iso.rightInv j (inl b') | no ¬p | yes q = ⊥-rec (¬p (q ∙ cong (λ e → equivFun e b') (invEquiv-is-linv e)))
-    Iso.rightInv j (inl b') | no ¬p | no ¬q =  cong inl (cong (λ e → equivFun e b') (invEquiv-is-linv e))
-    Iso.rightInv j (inr tt) with (eq? b (f (g b)))
-    ... | yes p = refl
-    ... | no ¬p = ⊥-rec (¬p (sym (cong (λ e → equivFun e b) (invEquiv-is-linv e))))
+--    f = equivFun e
+--    g = equivFun (invEquiv e)
+--    
+--    j : Iso (A ⊎ Unit) (B ⊎ Unit)
+--    Iso.fun j (inl a) with (eq? b (f a))
+--    ... | yes p = inr tt
+--    ... | no ¬p = inl (f a)
+--    Iso.fun j (inr tt) = inl b
+--    Iso.inv j (inl b') with (eq? b b')
+--    ... | yes p = inr tt
+ --   ... | no ¬p = inl (g b')
+--    Iso.inv j (inr tt) = inl (g b)
+ --   Iso.leftInv j (inl a) with (eq? b (f a))
+--    Iso.leftInv j (inl a) | yes p  = cong inl (cong g p ∙ cong (λ e → equivFun e a) (invEquiv-is-rinv e))
+ --   Iso.leftInv j (inl a) | no ¬p with (eq? b (f a))
+--    Iso.leftInv j (inl a) | no ¬p | yes q = ⊥-rec (¬p q)
+  --  Iso.leftInv j (inl a) | no ¬p | no ¬q = cong inl (cong (λ e → equivFun e a) (invEquiv-is-rinv e))
+--    Iso.leftInv j (inr tt) with (eq? b b)
+--    ... | yes p = refl
+--    ... | no ¬p = ⊥-rec (¬p refl)
+--    Iso.rightInv j (inl b') with (eq? b b')
+--    Iso.rightInv j (inl b') | yes p = cong inl p
+--    Iso.rightInv j (inl b') | no ¬p with (eq? b (equivFun e (g b')))
+--    Iso.rightInv j (inl b') | no ¬p | yes q = ⊥-rec (¬p (q ∙ cong (λ e → equivFun e b') (invEquiv-is-linv e)))
+--    Iso.rightInv j (inl b') | no ¬p | no ¬q =  cong inl (cong (λ e → equivFun e b') (invEquiv-is-linv e))
+--    Iso.rightInv j (inr tt) with (eq? b (f (g b)))
+--    ... | yes p = refl
+--    ... | no ¬p = ⊥-rec (¬p (sym (cong (λ e → equivFun e b) (invEquiv-is-linv e))))
 
-  isoInvUnit : (A ≃ B) → Iso (A ⊎ Unit) (B ⊎ Unit)
-  isoInvUnit e = j
-    where
-    j : Iso (A ⊎ Unit) (B ⊎ Unit)
-    Iso.fun j (inl a) = inl (equivFun e a)
-    Iso.fun j (inr tt) = inr tt
-    Iso.inv j (inl b) =  inl (equivFun (invEquiv e) b)
-    Iso.inv j (inr tt) = inr tt
-    Iso.leftInv j (inl a) = cong inl (cong (λ e → equivFun e a) (invEquiv-is-rinv e))
-    Iso.leftInv j (inr tt) = refl
-    Iso.rightInv j (inl b) = cong inl (cong (λ e → equivFun e b) (invEquiv-is-linv e))
-    Iso.rightInv j (inr tt) = refl
+--  isoInvUnit : (A ≃ B) → Iso (A ⊎ Unit) (B ⊎ Unit)
+--  isoInvUnit e = j
+--    where
+--    j : Iso (A ⊎ Unit) (B ⊎ Unit)
+ --   Iso.fun j (inl a) = inl (equivFun e a)
+--    Iso.fun j (inr tt) = inr tt
+--    Iso.inv j (inl b) =  inl (equivFun (invEquiv e) b)
+--    Iso.inv j (inr tt) = inr tt
+--    Iso.leftInv j (inl a) = cong inl (cong (λ e → equivFun e a) (invEquiv-is-rinv e))
+--    Iso.leftInv j (inr tt) = refl
+--    Iso.rightInv j (inl b) = cong inl (cong (λ e → equivFun e b) (invEquiv-is-linv e))
+--    Iso.rightInv j (inr tt) = refl
 
-  isoInv : (A ≃ B) ×Σ (B ⊎ Unit) → (A ⊎ Unit) ≃ (B ⊎ Unit)
-  isoInv (e , inl b) = isoToEquiv (isoInvB e b)
-  isoInv (e , inr tt) =  isoToEquiv (isoInvUnit e)
+--  isoInv : (A ≃ B) ×Σ (B ⊎ Unit) → (A ⊎ Unit) ≃ (B ⊎ Unit)
+ -- isoInv (e , inl b) = isoToEquiv (isoInvB e b)
+--  isoInv (e , inr tt) =  isoToEquiv (isoInvUnit e)
     
-  i : Iso ((A ⊎ Unit) ≃ (B ⊎ Unit)) ((A ≃ B) ×Σ (B ⊎ Unit))
+--  i : Iso ((A ⊎ Unit) ≃ (B ⊎ Unit)) ((A ≃ B) ×Σ (B ⊎ Unit))
+--  
+--  Iso.fun i e = inj-⊎-Unit e , equivFun e (inr tt)
+--  
+--  Iso.inv i = isoInv
   
-  Iso.fun i e = inj-⊎-Unit e , equivFun e (inr tt)
-  
-  Iso.inv i = isoInv
-  
-  Iso.leftInv i e = equivEq (funExt aux)
-    where
+ -- Iso.leftInv i e = equivEq (funExt aux)
+--    where
+--
+--    f = equivFun e
+--    g = equivFun (invEquiv e)
 
-    f = equivFun e
-    g = equivFun (invEquiv e)
+ --   f' = equivFun (inj-⊎-Unit e)
+--    g' = equivFun (invEquiv (inj-⊎-Unit e))
 
-    f' = equivFun (inj-⊎-Unit e)
-    g' = equivFun (invEquiv (inj-⊎-Unit e))
+ --   aux : (a+1 : A ⊎ Unit) → equivFun (Iso.inv i (inj-⊎-Unit e , f (inr tt))) a+1 ≡ (f a+1)
 
-    aux : (a+1 : A ⊎ Unit) → equivFun (Iso.inv i (inj-⊎-Unit e , f (inr tt))) a+1 ≡ (f a+1)
+--    aux (inl a) with isContrSingl (f (inr tt))
+--    aux (inl a) | (inl b , p) , _ with isContrSingl (f (inl a))
+--    aux (inl a) | (inl b , p) , _ | (inl b' , q) , _ = aux'
 
-    aux (inl a) with isContrSingl (f (inr tt))
-    aux (inl a) | (inl b , p) , _ with isContrSingl (f (inl a))
-    aux (inl a) | (inl b , p) , _ | (inl b' , q) , _ = aux'
+--      where
+ --     aux' =
+ --       equivFun (isoInv (inj-⊎-Unit e , f (inr tt))) (inl a) ≡⟨ cong (λ b+1 → equivFun (isoInv (inj-⊎-Unit e , b+1)) (inl a)) p ⟩
+  --      equivFun (isoInv (inj-⊎-Unit e , inl b)) (inl a) ≡⟨ refl ⟩
+--        equivFun (isoToEquiv (isoInvB (inj-⊎-Unit e) b)) (inl a) ≡⟨ refl ⟩
+ --       (Iso.fun (isoInvB (inj-⊎-Unit e) b)) (inl a) ≡⟨ aux'' ⟩
+ --       f (inl a) ∎
+ --         where
+ --         aux'' : (Iso.fun (isoInvB (inj-⊎-Unit e) b)) (inl a) ≡ f (inl a)
+ --         aux'' with (eq? b b') 
+ --        aux'' | yes p' = ⊥-rec (inl≠inr a tt (inj-≃ e (q ∙ cong inl (sym p') ∙ sym p)))
+ --         aux'' | no ¬p' with (eq? b (f' a))
+--          aux'' | no ¬p' | yes q' = {!!}
+--          aux'' | no ¬p' | no ¬q' = {!!}
+--
+--    aux (inl a) | (inl b , p) , _ | (inr tt , q) , _ = aux'
 
-      where
-      aux' =
-        equivFun (isoInv (inj-⊎-Unit e , f (inr tt))) (inl a) ≡⟨ cong (λ b+1 → equivFun (isoInv (inj-⊎-Unit e , b+1)) (inl a)) p ⟩
-        equivFun (isoInv (inj-⊎-Unit e , inl b)) (inl a) ≡⟨ refl ⟩
-        equivFun (isoToEquiv (isoInvB (inj-⊎-Unit e) b)) (inl a) ≡⟨ refl ⟩
-        (Iso.fun (isoInvB (inj-⊎-Unit e) b)) (inl a) ≡⟨ aux'' ⟩
-        f (inl a) ∎
-          where
-          aux'' : (Iso.fun (isoInvB (inj-⊎-Unit e) b)) (inl a) ≡ f (inl a)
-          aux'' with (eq? b b') 
-          aux'' | yes p' = ⊥-rec (inl≠inr a tt (inj-≃ e (q ∙ cong inl (sym p') ∙ sym p)))
-          aux'' | no ¬p' with (eq? b (f' a))
-          aux'' | no ¬p' | yes q' = {!!}
-          aux'' | no ¬p' | no ¬q' = {!!}
+--      where
+--      aux' =
+--        equivFun (isoInv (inj-⊎-Unit e , f (inr tt))) (inl a) ≡⟨ cong (λ b+1 → equivFun (isoInv (inj-⊎-Unit e , b+1)) (inl a)) p ⟩
+--        equivFun (isoInv (inj-⊎-Unit e , inl b)) (inl a) ≡⟨ refl ⟩
+--        equivFun (isoToEquiv (isoInvB (inj-⊎-Unit e) b)) (inl a) ≡⟨ refl ⟩
+--        (Iso.fun (isoInvB (inj-⊎-Unit e) b)) (inl a) ≡⟨ aux'' ⟩
+--        inr tt ≡⟨ sym q ⟩
+--        f (inl a) ∎
+ --         where
+ --         aux'' : (Iso.fun (isoInvB (inj-⊎-Unit e) b)) (inl a) ≡ inr tt
+--          aux'' with (eq? b (f' a))
+--          aux'' | yes p' = refl
+ --         aux'' | no ¬p' = ⊥-rec (¬p' (sym (inj-⊎-Unit-switch e a q b p)))
+ --       
+--    aux (inl a) | (inr tt , p) , _ with isContrSingl (f (inl a))
+--    aux (inl a) | (inr tt , p) , _ | (inl b , q) , _ = aux'
+--      where
+ --     aux' =
+ --       equivFun (isoInv (inj-⊎-Unit e , f (inr tt))) (inl a) ≡⟨ cong (λ x →  equivFun (isoInv (inj-⊎-Unit e , x)) (inl a)) p ⟩
+ --       equivFun (isoToEquiv (isoInvUnit (inj-⊎-Unit e))) (inl a) ≡⟨ refl ⟩
+ --       inl (f' a) ≡⟨ sym (inj-⊎-Unit-tt e p a) ⟩
+--        f (inl a) ∎
+--
+--    aux (inl a) | (inr tt , p) , _ | (inr tt , q) , _ = ⊥-rec (inl≠inr a tt (inj-≃ e (q ∙ (sym p))))
 
-    aux (inl a) | (inl b , p) , _ | (inr tt , q) , _ = aux'
-
-      where
-      aux' =
-        equivFun (isoInv (inj-⊎-Unit e , f (inr tt))) (inl a) ≡⟨ cong (λ b+1 → equivFun (isoInv (inj-⊎-Unit e , b+1)) (inl a)) p ⟩
-        equivFun (isoInv (inj-⊎-Unit e , inl b)) (inl a) ≡⟨ refl ⟩
-        equivFun (isoToEquiv (isoInvB (inj-⊎-Unit e) b)) (inl a) ≡⟨ refl ⟩
-        (Iso.fun (isoInvB (inj-⊎-Unit e) b)) (inl a) ≡⟨ aux'' ⟩
-        inr tt ≡⟨ sym q ⟩
-        f (inl a) ∎
-          where
-          aux'' : (Iso.fun (isoInvB (inj-⊎-Unit e) b)) (inl a) ≡ inr tt
-          aux'' with (eq? b (f' a))
-          aux'' | yes p' = refl
-          aux'' | no ¬p' = ⊥-rec (¬p' (sym (inj-⊎-Unit-switch e a q b p)))
-        
-    aux (inl a) | (inr tt , p) , _ with isContrSingl (f (inl a))
-    aux (inl a) | (inr tt , p) , _ | (inl b , q) , _ = aux'
-      where
-      aux' =
-        equivFun (isoInv (inj-⊎-Unit e , f (inr tt))) (inl a) ≡⟨ cong (λ x →  equivFun (isoInv (inj-⊎-Unit e , x)) (inl a)) p ⟩
-        equivFun (isoToEquiv (isoInvUnit (inj-⊎-Unit e))) (inl a) ≡⟨ refl ⟩
-        inl (f' a) ≡⟨ sym (inj-⊎-Unit-tt e p a) ⟩
-        f (inl a) ∎
-
-    aux (inl a) | (inr tt , p) , _ | (inr tt , q) , _ = ⊥-rec (inl≠inr a tt (inj-≃ e (q ∙ (sym p))))
-
-    aux (inr tt) = {!!}
+--    aux (inr tt) = {!!}
     
-  Iso.rightInv i = {!!}
+--  Iso.rightInv i = {!!}
+
+
+--test : (Q : B → A → Type₀) → (a a' : A) → (p : a ≡ a') → (b : B) → (x : Q b a) → transport (cong (λ a → Σ[ b ∈ B ] (Q b a)) p) (b , x) ≡ (b , transport (cong (Q b) p) x)
+--test Q a a' p b x = ΣPathP {!!}
